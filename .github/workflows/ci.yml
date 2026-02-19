@@ -43,29 +43,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Install uv
         uses: astral-sh/setup-uv@v5
-
       - name: Build package
         run: uv build
-
       - name: Create Test Environment and Verify
         run: |
-          # 1. Create a specific virtual environment
           uv venv smoke_env
-          
-          # 2. Point all subsequent uv commands to use this environment
-          export VIRTUAL_ENV=smoke_env
-          
-          # 3. Install the newly built wheel
-          uv pip install dist/*.whl
-          
-          # 4. Remove local 'src' to force library import
+          # Install using the specific interpreter
+          uv pip install dist/*.whl --python smoke_env/bin/python
           rm -rf src
-          
-          # 5. Verify the package is actually installed and working
-          python -c "from deep_variable import DeepVariable; print('✅ DeepVariable imported successfully from Wheel!')"
-          
-          # 6. Run tests using the python in the smoke_env
+          # Run everything using the explicit path to the venv
+          ./smoke_env/bin/python -c "from deep_variable import DeepVariable; print('✅ Success')"
           ./smoke_env/bin/pytest tests/
