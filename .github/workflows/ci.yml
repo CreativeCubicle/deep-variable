@@ -39,7 +39,7 @@ jobs:
 
   build-and-verify:
     name: Build & Smoke Test
-    needs: quality-check # Only runs if linting/tests pass
+    needs: quality-check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,16 +51,15 @@ jobs:
         run: uv build
 
       - name: Install from Wheel
-        # This ensures the library is installed from the .whl file, not the source
-        run: uv pip install dist/*.whl
+        # Using --system because the CI runner is an isolated ephemeral container
+        run: uv pip install dist/*.whl --system
 
       - name: Verify Import
-        # A simple check to ensure the package structure isn't broken
         run: python -c "from deep_variable import DeepVariable; print('Import successful')"
 
       - name: Run tests against installed package
-        # We delete the 'src' folder temporarily to force Python 
-        # to use the installed version in site-packages
+        # We remove 'src' to prevent pytest from importing local files.
+        # This forces it to use the version installed in site-packages via the wheel.
         run: |
           rm -rf src
-          uv run pytest
+          pytest tests/
