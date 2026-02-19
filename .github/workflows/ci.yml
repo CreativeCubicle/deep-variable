@@ -50,16 +50,22 @@ jobs:
       - name: Build package
         run: uv build
 
-      - name: Install from Wheel
-        # Using --system because the CI runner is an isolated ephemeral container
-        run: uv pip install dist/*.whl --system
-
-      - name: Verify Import
-        run: python -c "from deep_variable import DeepVariable; print('Import successful')"
-
-      - name: Run tests against installed package
-        # We remove 'src' to prevent pytest from importing local files.
-        # This forces it to use the version installed in site-packages via the wheel.
+      - name: Create Test Environment and Verify
         run: |
+          # 1. Create a fresh virtual environment
+          uv venv smoke_env
+          
+          # 2. Install the newly built wheel into the environment
+          # We use the wildcard to grab the .whl file in the dist folder
+          uv pip install dist/*.whl
+          
+          # 3. Remove the local 'src' directory
+          # This ensures Python imports from the installed site-packages, not the local folder
           rm -rf src
-          pytest tests/
+          
+          # 4. Run a sanity check import
+          uv run python -c "from deep_variable import DeepVariable; print('✅ DeepVariable imported successfully from Wheel!')"
+          
+          # 5. Run the test suite against the installed package
+          # We explicitly point to the tests/ directory
+          uv run pytest tests/
