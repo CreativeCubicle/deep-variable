@@ -1,5 +1,6 @@
 from deep_variable import DeepVariable
 
+
 def test_basic_get():
     data = {"user": {"name": "Krishna"}}
     assert DeepVariable.get(data, "user.name") == "Krishna"

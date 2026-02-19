@@ -1,29 +1,30 @@
-from typing import Any, Union, Optional
+from typing import Any, Union
+
 
 class DeepVariable:
     @staticmethod
     def get(
-        data: Union[dict, list], 
-        path: str, 
-        default: Any = None, 
+        data: Union[dict, list],
+        path: str,
+        default: Any = None,
         sep: str = "."
     ) -> Any:
         """
         Safely retrieves a value from a deeply nested structure using a string path.
 
-        This method traverses dictionaries and lists iteratively. If a part of the 
-        path is missing, or if a type mismatch occurs (e.g., trying to access a 
-        list index on a dictionary), it returns the provided default value 
+        This method traverses dictionaries and lists iteratively. If a part of the
+        path is missing, or if a type mismatch occurs (e.g., trying to access a
+        list index on a dictionary), it returns the provided default value
         instead of raising an exception.
 
         Args:
             data (Union[dict, list]): The nested object (dictionary or list) to search.
-            path (str): A string representing the path to the desired value, 
-                with components separated by `sep`. Integers in the path are 
+            path (str): A string representing the path to the desired value,
+                with components separated by `sep`. Integers in the path are
                 automatically treated as list indices.
-            default (Any, optional): The value to return if the path does not exist 
+            default (Any, optional): The value to return if the path does not exist
                 or an error occurs. Defaults to None.
-            sep (str, optional): The delimiter used to split the path string. 
+            sep (str, optional): The delimiter used to split the path string.
                 Defaults to ".".
 
         Returns:
@@ -48,7 +49,7 @@ class DeepVariable:
             try:
                 # Handle List Navigation
                 if isinstance(current, list):
-                    # We convert the key to int. If it fails, ValueError 
+                    # We convert the key to int. If it fails, ValueError
                     # is caught by the except block.
                     idx = int(key)
                     current = current[idx]
@@ -61,13 +62,13 @@ class DeepVariable:
                 return default
 
         return current
-    
+
     @staticmethod
     def has(data: Union[dict, list], path: str, sep: str = ".") -> bool:
         """
         Checks if a specific path exists within the nested structure.
 
-        Unlike .get(), this returns True even if the value at the path is None, 
+        Unlike .get(), this returns True even if the value at the path is None,
         False, or an empty string.
 
         Args:
@@ -82,13 +83,13 @@ class DeepVariable:
         sentinel = object()
         result = DeepVariable.get(data, path, default=sentinel, sep=sep)
         return result is not sentinel
-    
+
     @staticmethod
     def set(data: dict, path: str, value: Any, sep: str = ".") -> bool:
         """
         Sets a value at a deeply nested path, creating intermediate dicts if missing.
 
-        Note: Currently, this method primarily supports dictionary creation 
+        Note: Currently, this method primarily supports dictionary creation
         for missing keys. It will not auto-create lists.
 
         Args:
