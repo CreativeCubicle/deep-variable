@@ -52,20 +52,20 @@ jobs:
 
       - name: Create Test Environment and Verify
         run: |
-          # 1. Create a fresh virtual environment
+          # 1. Create a specific virtual environment
           uv venv smoke_env
           
-          # 2. Install the newly built wheel into the environment
-          # We use the wildcard to grab the .whl file in the dist folder
+          # 2. Point all subsequent uv commands to use this environment
+          export VIRTUAL_ENV=smoke_env
+          
+          # 3. Install the newly built wheel
           uv pip install dist/*.whl
           
-          # 3. Remove the local 'src' directory
-          # This ensures Python imports from the installed site-packages, not the local folder
+          # 4. Remove local 'src' to force library import
           rm -rf src
           
-          # 4. Run a sanity check import
-          uv run python -c "from deep_variable import DeepVariable; print('✅ DeepVariable imported successfully from Wheel!')"
+          # 5. Verify the package is actually installed and working
+          python -c "from deep_variable import DeepVariable; print('✅ DeepVariable imported successfully from Wheel!')"
           
-          # 5. Run the test suite against the installed package
-          # We explicitly point to the tests/ directory
-          uv run pytest tests/
+          # 6. Run tests using the python in the smoke_env
+          ./smoke_env/bin/pytest tests/
