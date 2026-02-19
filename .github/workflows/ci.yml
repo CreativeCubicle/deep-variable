@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  quality-check:
+    name: Quality & Testing
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+      - name: Run Ruff, Mypy, and Pytest
+        run: |
+          uv run ruff check .
+          uv run mypy src/
+          uv run pytest
+
+  build-and-verify:
+    name: Build & Smoke Test
+    needs: quality-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: 1. Build Package
+        run: |
+          uv build
+          echo "--- Content of dist/ ---"
+          ls -R dist/
+
+      - name: 2. Create Venv and Install
+        run: |
+          # Create the environment
+          uv venv smoke_env
+          
+          # Install the wheel AND pytest (needed for testing)
+          # We use the explicit python path to ensure it lands in the venv
+          uv pip install dist/*.whl pytest --python smoke_env/bin/python
+          
+          echo "--- Venv Binaries ---"
+          ls smoke_env/bin/
+
+      - name: 3. Verify Isolation & Run Tests
+        run: |
+          # Remove src so we CANNOT import from local files
+          rm -rf src
+          
+          echo "--- Directory Structure after removing src ---"
+          tree -I 'smoke_env' || ls -R . 
+
+          # Run the import check
+          ./smoke_env/bin/python -c "from deep_variable import DeepVariable; print('✅ Import Success!')"
+          
+          # Run pytest using the binary we just installed into the venv
+          ./smoke_env/bin/pytest tests/
