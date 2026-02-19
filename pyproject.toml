@@ -1,10 +1,10 @@
 [project]
 name = "deep-variable"
 version = "0.1.0"
-description = "Add your description here"
+description = "**Deep Variable** is a lightweight, zero-dependency Python utility designed to eliminate `KeyError` and `TypeError` crashes when working with deeply nested data structures"
 readme = "README.md"
 authors = [
-    { name = "Yashas G V", email = "REDACTED" }
+    { name = "Yashas G V", email = "" }
 ]
 requires-python = ">=3.12"
 dependencies = []
